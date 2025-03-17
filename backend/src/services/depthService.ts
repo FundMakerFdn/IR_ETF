@@ -5,6 +5,15 @@ import { pool } from "../db/connection";
  * @param {number} amount - The amount of capital to add.
  * @returns {Promise<any[]>} Simulation results showing the impact on interest rates.
  */
+// Function to simulate non-linear APY change based on TVL
+const calculateNonLinearApy = (tvl: number, amount: number, apy: number) => {
+  const newTvl = tvl + amount;
+  // Apply a diminishing return effect
+  const scaleFactor = 1 - Math.pow(tvl / (tvl + 1000000), 0.5); // Adjust this scale to model diminishing returns
+  const newApy = apy * (1 - scaleFactor); // Calculate the new APY
+
+  return newApy;
+}
 export const simulateDepth = async (amount: number): Promise<any[]> => {
   const client = await pool.connect();
   try {
@@ -19,8 +28,8 @@ export const simulateDepth = async (amount: number): Promise<any[]> => {
 
     // Calculate the impact of adding the specified amount to each protocol
     const simulationResults = protocols.map((protocol: any) => {
-      const newTvl = protocol.tvl + amount;
-      const depthImpact = ((protocol.apy * protocol.tvl) / newTvl) - protocol.apy;
+      const newApy = calculateNonLinearApy(protocol.tvl, amount, protocol.apy);
+      const depthImpact = ((protocol.apy - newApy) / protocol.apy) * 100;
 
       return {
         protocol: protocol.protocol_name,
@@ -28,7 +37,7 @@ export const simulateDepth = async (amount: number): Promise<any[]> => {
         stablecoin: protocol.stablecoin,
         apy: protocol.apy,
         tvl: protocol.tvl,
-        depthImpact: depthImpact * 100, // Convert to percentage
+        depthImpact: depthImpact,
       };
     });
 

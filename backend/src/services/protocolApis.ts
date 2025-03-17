@@ -1,116 +1,122 @@
 import axios from "axios";
 import { ethers } from "ethers";
 import dotenv from "dotenv";
-
+import {
+  SUBGRAPH_API_KEY,
+  SUBGRAPH_IDS,
+  STABLECOINS,
+  CHAINS,
+} from "../constant/constant";
 dotenv.config();
-const AAVE_V3_SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/name/aave/protocol-v3";
-/**
- * Service for interacting with protocol-specific APIs to fetch data from various DeFi protocols.
- */
-
-// Infura Ethereum Mainnet RPC URL
-const INFURA_URL = `https://mainnet.infura.io/v3/c5f77a043edb4e13be81bcd7f2e4e355`;
-
-// Connect to Ethereum provider (via Infura)
-const provider = new ethers.JsonRpcProvider(INFURA_URL);
-
-// Aave V3 Pool Data Provider contract (Mainnet)
-const AAVE_V3_DATA_PROVIDER = "0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3"; // Aave V3 Ethereum Mainnet Data Provider
-
-// Aave Pool Data ABI (Only relevant function)
-const AAVE_DATA_PROVIDER_ABI = [
-  "function getReservesList() view returns (address[])",
-  "function getReserveData(address asset) view returns (uint256, uint128, uint128, uint128, uint128, uint128, uint40, uint16)",
-];
-
-// Initialize contract instance
-const aaveDataProvider = new ethers.Contract(
-  AAVE_V3_DATA_PROVIDER,
-  AAVE_DATA_PROVIDER_ABI,
-  provider
-);
 export class ProtocolApis {
-  private static async fetchAaveData(): Promise<any[]> {
-    // try {
-    //   const response = await axios.get("https://api.aave.com/v1/protocols");
-    //   return response.data.map((protocol: any) => ({
-    //     protocol: "Aave",
-    //     chain: protocol.chain,
-    //     stablecoin: protocol.stablecoin,
-    //     apy: protocol.apy,
-    //     tvl: protocol.tvl,
-    //   }));
-    // } catch (error) {
-    //   console.error("Failed to fetch data from Aave API:", error);
-    //   throw new Error("Unable to fetch data from Aave API.");
-    // }
-
-    // Aave V3 Subgraph API (Example: Polygon)
+  private static async fetchSubgraphData(
+    protocol: string,
+    chain: string,
+    subgraphId: string
+  ): Promise<any[]> {
+    const url = `https://gateway.thegraph.com/api/${SUBGRAPH_API_KEY}/subgraphs/id/${subgraphId}`;
     try {
-      console.log("Fetching Aave V3 reserves...");
+      const query = `
+            {
+              reserves {
+                id
+                symbol
+                decimals
+                liquidityRate
+                totalLiquidity
+                lastUpdateTimestamp
+              }
+            }
+          `;
 
-      // Fetch all reserve addresses
-      const reserves = await aaveDataProvider.getReservesList();
+      const response = await axios.post(url, { query });
+      if (response.data.errors) {
+        console.error(
+          `GraphQL errors for ${protocol} on ${chain}:`,
+          response.data.errors
+        );
+        return [];
+      }
 
-      // Iterate over each reserve and fetch its data
-      const reserveData: any[] = await Promise.all(
-        reserves.map(async (asset: any) => {
-          const data = await aaveDataProvider.getReserveData(asset);
+      const reserves = response.data.data.reserves;
 
+      return reserves
+        .filter((reserve: any) => STABLECOINS.includes(reserve.symbol))
+        .map((reserve: any) => {
+          const liquidityRate = parseFloat(reserve.liquidityRate) / 1e27;
+          const apy = ((1 + liquidityRate / 31536000) ** 31536000 - 1) * 100;
+          const tvl = parseFloat(reserve.totalLiquidity) / 10 ** reserve.decimals;
           return {
-            protocol: "Aave V3",
-            chain: "Ethereum", // Since we're fetching from Ethereum mainnet
-            stablecoin: asset, // You may need a mapping to get actual names like USDC, DAI, etc.
-            apy: Number(data[2]) / 1e27, // Convert to percentage
-            tvl: Number(data[4]) / 1e18, // Convert to human-readable TVL
+            protocol,
+            chain: CHAINS[chain as keyof typeof CHAINS],
+            stablecoin: reserve.symbol,
+            apy,
+            tvl,
+            timestamp: new Date(
+              reserve.lastUpdateTimestamp * 1000
+            ).toISOString(),
           };
-        })
-      );
-
-      return reserveData;
+        });
     } catch (error) {
-      console.error("Error fetching Aave reserves:", error);
-      return []
+      console.error(`Error fetching ${protocol} data on ${chain}:`, error);
+      return [];
     }
   }
 
-  private static async fetchCompoundData(): Promise<any[]> {
-    return [];
-    try {
-      const response = await axios.get(
-        "https://api.compound.finance/v2/ctokens"
-      );
-      return response.data.cToken.map((token: any) => ({
-        protocol: "Compound",
-        chain: "Ethereum",
-        stablecoin: token.underlying_symbol,
-        apy: parseFloat(token.supply_rate.value) * 100,
-        tvl:
-          parseFloat(token.total_supply.value) *
-          parseFloat(token.exchange_rate.value),
-      }));
-    } catch (error) {
-      console.error("Failed to fetch data from Compound API:", error);
-      throw new Error("Unable to fetch data from Compound API.");
-    }
+  private static async fetchAaveV3Data(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.AAVE_V3).map(([chain, id]) =>
+      this.fetchSubgraphData("Aave V3", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
   }
 
-  private static async fetchMakerData(): Promise<any[]> {
-    return [];
-    try {
-      const response = await axios.get("https://api.makerdao.com/v1/vaults");
-      return response.data.map((vault: any) => ({
-        protocol: "MakerDAO",
-        chain: "Ethereum",
-        stablecoin: vault.collateral_type,
-        apy: vault.stability_fee * 100,
-        tvl: vault.total_collateral_value,
-      }));
-    } catch (error) {
-      console.error("Failed to fetch data from MakerDAO API:", error);
-      throw new Error("Unable to fetch data from MakerDAO API.");
-    }
+  private static async fetchAaveV2Data(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.AAVE_V2).map(([chain, id]) =>
+      this.fetchSubgraphData("Aave V2", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
+  }
+
+  private static async fetchCompoundV3Data(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.COMPOUND_V3).map(
+      ([chain, id]) => this.fetchSubgraphData("Compound V3", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
+  }
+
+  private static async fetchMorphoData(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.MORPHO).map(([chain, id]) =>
+      this.fetchSubgraphData("Morpho", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
+  }
+
+  private static async fetchVenusData(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.VENUS).map(([chain, id]) =>
+      this.fetchSubgraphData("Venus", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
+  }
+
+  private static async fetchFluidData(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.FLUID).map(([chain, id]) =>
+      this.fetchSubgraphData("Fluid", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
+  }
+
+  private static async fetchSparkData(): Promise<any[]> {
+    const promises = Object.entries(SUBGRAPH_IDS.SPARK).map(([chain, id]) =>
+      this.fetchSubgraphData("Spark", chain, id)
+    );
+    const results = await Promise.all(promises);
+    return results.flat();
   }
 
   /**
@@ -119,13 +125,35 @@ export class ProtocolApis {
    */
   public static async fetchAllProtocols(): Promise<any[]> {
     try {
-      const [aaveData, compoundData, makerData] = await Promise.all([
-        this.fetchAaveData(),
-        this.fetchCompoundData(),
-        this.fetchMakerData(),
+      const [
+        aaveV3Data,
+        aaveV2Data,
+        compoundV3Data,
+        morphoData,
+        venusData,
+        fluidData,
+        sparkData,
+      ] = await Promise.all([
+        this.fetchAaveV3Data(),
+        this.fetchAaveV2Data(),
+        this.fetchCompoundV3Data(),
+        this.fetchMorphoData(),
+        this.fetchVenusData(),
+        this.fetchFluidData(),
+        this.fetchSparkData(),
       ]);
 
-      return [...aaveData, ...compoundData, ...makerData];
+      const allData = [
+        ...aaveV3Data,
+        ...aaveV2Data,
+        ...compoundV3Data,
+        ...morphoData,
+        ...venusData,
+        ...fluidData,
+        ...sparkData,
+      ];
+      console.log(allData)
+      return allData;
     } catch (error) {
       console.error("Failed to fetch data from DeFi protocols:", error);
       throw new Error("Unable to fetch data from DeFi protocols.");

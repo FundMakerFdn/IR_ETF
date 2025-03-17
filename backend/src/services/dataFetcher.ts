@@ -12,9 +12,9 @@ export const fetchProtocols = async () => {
   try {
     for (const protocol of protocols) {
       await client.query(
-        `INSERT INTO protocols (protocol_name, chain, stablecoin, apy, tvl, timestamp)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [protocol.protocol, protocol.chain, protocol.stablecoin, protocol.apy, protocol.tvl]
+        `INSERT INTO protocols (protocol_name, chain, stablecoin, apy, tvl, lastUpdated, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [protocol.protocol, protocol.chain, protocol.stablecoin, protocol.apy, protocol.tvl, protocol.timestamp]
       );
     }
 
@@ -46,21 +46,6 @@ export const fetchLiveProtocolData = async () => {
 };
 
 export const fetchHistoricalProtocolData = async () => {
-  // Fetch historical protocol data from the database
-  const client = await pool.connect();
-  try {
-    const result = await client.query(
-      `SELECT protocol_name, chain, stablecoin, apy, tvl, timestamp
-       FROM historical_protocols
-       ORDER BY timestamp DESC`
-    );
-    return result.rows;
-  } finally {
-    client.release();
-  }
-};
-
-export const fetchHistoricalProtocols = async () => {
   // Fetch historical protocol data from the database
   const client = await pool.connect();
   try {
