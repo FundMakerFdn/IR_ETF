@@ -1,8 +1,10 @@
-CREATE TABLE index_weights (
-    id SERIAL PRIMARY KEY,
-    index_id INT NOT NULL,
-    protocol_name VARCHAR(255) NOT NULL,
-    weight NUMERIC NOT NULL,
-    timestamp TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (index_id) REFERENCES indices(id)
-);
+CREATE TABLE
+    index_weights (
+        id SERIAL PRIMARY KEY,
+        index_id INT,
+        protocol VARCHAR(50),
+        chain VARCHAR(50),
+        weight DECIMAL,
+        rebalance_date DATE,
+        timestamp TIMESTAMP NOT NULL DEFAULT NOW ()
+    );

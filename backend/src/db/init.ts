@@ -54,7 +54,6 @@ export const initializeDatabase = async () => {
         apy NUMERIC(10, 4) NOT NULL,
         tvl NUMERIC(20, 2) NOT NULL,
         interest_rate DECIMAL,
-        lastUpdated TIMESTAMP NOT NULL DEFAULT NOW(),
         timestamp TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
@@ -85,10 +84,12 @@ export const initializeDatabase = async () => {
     await client.query(`
       CREATE TABLE IF NOT EXISTS index_weights (
         id SERIAL PRIMARY KEY,
-        index_id INT NOT NULL REFERENCES ldr_index(id) ON DELETE CASCADE,
-        protocol_name VARCHAR(255) NOT NULL,
-        weight NUMERIC(10, 4) NOT NULL,
-        timestamp TIMESTAMP NOT NULL DEFAULT NOW()
+        index_id INT,
+        protocol VARCHAR(50),
+        chain VARCHAR(50),
+        weight DECIMAL,
+        rebalance_date DATE,
+        timestamp TIMESTAMP NOT NULL DEFAULT NOW ()
       );
     `);
 
