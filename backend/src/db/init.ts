@@ -53,6 +53,7 @@ export const initializeDatabase = async () => {
         stablecoin VARCHAR(255) NOT NULL,
         apy NUMERIC(10, 4) NOT NULL,
         tvl NUMERIC(20, 2) NOT NULL,
+        interest_rate DECIMAL,
         lastUpdated TIMESTAMP NOT NULL DEFAULT NOW(),
         timestamp TIMESTAMP NOT NULL DEFAULT NOW()
       );

@@ -5,5 +5,6 @@ CREATE TABLE protocols (
     stablecoin VARCHAR(255) NOT NULL,
     apy NUMERIC NOT NULL,
     tvl NUMERIC NOT NULL,
+    interest_rate DECIMAL,
     timestamp TIMESTAMP DEFAULT NOW()
 );
