@@ -1,27 +1,38 @@
 import { pool } from "../db/connection";
+import { saveWeights } from "./weightService";
 
 export const computeAndStoreWeights = async (indexId: number) => {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT protocol_name, tvl FROM protocols WHERE timestamp > NOW() - INTERVAL '1 month'`
+      `SELECT protocol, chain, tvl, timestamp FROM protocols WHERE timestamp > NOW() - INTERVAL '1 month'`
     );
 
     const protocols = result.rows;
 
-    const totalTVL = protocols.reduce((sum: number, protocol: any) => sum + protocol.tvl, 0);
+    const latestData: any = {};
+    protocols.forEach((protocol: any) => {
+      const key = `${protocol.protocol}-${protocol.chain}`;
+      if (!latestData[key]) latestData[key] = protocol.tvl;
+    });
 
-    for (const protocol of protocols) {
-      const weight = (protocol.tvl / totalTVL) * 100;
+    const totalTvl: any = Object.values(latestData).reduce(
+      (sum: any, tvl: any) => sum + tvl,
+      0
+    );
 
-      await client.query(
-        `INSERT INTO index_weights (index_id, protocol_name, weight, timestamp)
-         VALUES ($1, $2, $3, NOW())`,
-        [indexId, protocol.protocol_name, weight]
-      );
-    }
+    const weights = Object.entries(latestData).map(([key, tvl]: [any, any]) => {
+      const [protocol, chain] = key.split("-");
+      return {
+        protocol,
+        chain,
+        weight: (tvl / totalTvl) * 100,
+      };
+    });
 
-    return { message: "Weights computed and stored successfully." };
+    const rebalanceDate = new Date().toISOString().split("T")[0];
+    await saveWeights(indexId, weights, rebalanceDate);
+    return weights;
   } finally {
     client.release();
   }

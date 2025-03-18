@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { simulateDepth, simulateRebalance } from "../services/simulationService";
+import { simulateDepth } from "../services/depthService";
+import { simulateRebalance } from "../services/simulationService";
 
 export const simulateInterestRateDepth = async (req: Request, res: Response) => {
   try {

@@ -1,6 +1,9 @@
 import cron from 'node-cron'
 import { storeHourlyAverageAPY } from "../services/apyService";
 import { logger } from "./logger";
+import { ProtocolApis } from '../services/protocolApis';
+import { saveToPostgres } from '../services/protocolService';
+import { rebalanceWeights } from '../services/rebalanceService';
 
 // Schedule a cron job to run every hour
 export const initializeCronJobs = () => {
@@ -14,5 +17,14 @@ export const initializeCronJobs = () => {
     }
   });
 
+  cron.schedule('* * * * *', async () => {
+    const data = await ProtocolApis.fetchAllProtocols();
+    await saveToPostgres(data);
+    console.log('Fetched and stored 1-minute data');
+  });
+
   logger.info("Cron jobs initialized.");
+
+  // Schedule monthly rebalance
+cron.schedule('0 0 1 * *', () => rebalanceWeights(1)); // Every 1st of the month
 };

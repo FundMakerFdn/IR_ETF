@@ -12,9 +12,17 @@ export const fetchProtocols = async () => {
   try {
     for (const protocol of protocols) {
       await client.query(
-        `INSERT INTO protocols (protocol_name, chain, stablecoin, apy, tvl, lastUpdated, timestamp)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-        [protocol.protocol, protocol.chain, protocol.stablecoin, protocol.apy, protocol.tvl, protocol.timestamp]
+        `INSERT INTO protocols (protocol_name, chain, stablecoin, apy, tvl, interest_rate, lastUpdated, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [
+          protocol.protocol,
+          protocol.chain,
+          protocol.stablecoin,
+          protocol.apy,
+          protocol.tvl,
+          protocol.interest_rate,
+          protocol.timestamp,
+        ]
       );
     }
 

@@ -1,13 +1,10 @@
 import axios from "axios";
-import { ethers } from "ethers";
-import dotenv from "dotenv";
 import {
   SUBGRAPH_API_KEY,
   SUBGRAPH_IDS,
   STABLECOINS,
   CHAINS,
 } from "../constant/constant";
-dotenv.config();
 export class ProtocolApis {
   private static async fetchSubgraphData(
     protocol: string,
@@ -16,18 +13,32 @@ export class ProtocolApis {
   ): Promise<any[]> {
     const url = `https://gateway.thegraph.com/api/${SUBGRAPH_API_KEY}/subgraphs/id/${subgraphId}`;
     try {
+      // const query = `
+      // {
+      //   markets {
+      //     protocol
+      //     name
+      //     rates {
+      //       type
+      //       rate
+      //     }
+      //     totalValueLockedUSD
+      //     createdTimestamp
+      //   }
+      // }
+      // `;
       const query = `
-            {
-              reserves {
-                id
-                symbol
-                decimals
-                liquidityRate
-                totalLiquidity
-                lastUpdateTimestamp
-              }
-            }
-          `;
+      {
+        reserves {
+          id
+          symbol
+          decimals
+          liquidityRate
+          totalLiquidity
+          lastUpdateTimestamp
+        }
+      }
+    `;
 
       const response = await axios.post(url, { query });
       if (response.data.errors) {
@@ -38,25 +49,56 @@ export class ProtocolApis {
         return [];
       }
 
+      //   with reserve data
       const reserves = response.data.data.reserves;
-
       return reserves
         .filter((reserve: any) => STABLECOINS.includes(reserve.symbol))
         .map((reserve: any) => {
           const liquidityRate = parseFloat(reserve.liquidityRate) / 1e27;
           const apy = ((1 + liquidityRate / 31536000) ** 31536000 - 1) * 100;
-          const tvl = parseFloat(reserve.totalLiquidity) / 10 ** reserve.decimals;
+          const tvl =
+            parseFloat(reserve.totalLiquidity) / 10 ** reserve.decimals;
           return {
             protocol,
             chain: CHAINS[chain as keyof typeof CHAINS],
             stablecoin: reserve.symbol,
             apy,
             tvl,
+            interest_rate: liquidityRate * 100,
             timestamp: new Date(
               reserve.lastUpdateTimestamp * 1000
             ).toISOString(),
           };
         });
+
+      // with markets data
+      // const markets = response.data.data.markets;
+      // console.log(markets);
+      // return markets
+      //   .filter((market: any) =>
+      //     STABLECOINS.some((stablecoin) => market.name.includes(stablecoin))
+      //   )
+      //   .map((market: any) => {
+      //     const liquidityRate =
+      //       market.rates?.find((rate: any) => rate.type === "liquidity")
+      //         ?.rate || 0;
+      //     console.log(market.rates);
+      //     const adjustedLiquidityRate = parseFloat(liquidityRate) / 1e27;
+      //     const apy =
+      //       ((1 + adjustedLiquidityRate / 31536000) ** 31536000 - 1) * 100;
+      //     const tvl = parseFloat(market.totalValueLockedUSD);
+      //     const stablecoin =
+      //       STABLECOINS.find((s) => market.name.includes(s)) || "";
+      //     return {
+      //       protocol,
+      //       chain: CHAINS[chain as keyof typeof CHAINS],
+      //       stablecoin: stablecoin,
+      //       apy,
+      //       tvl,
+      //       interest_rate: adjustedLiquidityRate * 100,
+      //       timestamp: new Date(market.createdTimestamp * 1000).toISOString(),
+      //     };
+      //   });
     } catch (error) {
       console.error(`Error fetching ${protocol} data on ${chain}:`, error);
       return [];
@@ -152,7 +194,7 @@ export class ProtocolApis {
         ...fluidData,
         ...sparkData,
       ];
-      console.log(allData)
+
       return allData;
     } catch (error) {
       console.error("Failed to fetch data from DeFi protocols:", error);

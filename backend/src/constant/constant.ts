@@ -1,4 +1,5 @@
-export const SUBGRAPH_API_KEY = process.env.SUBGRAPH_API_KEY || "a91ea186d50f7e8629fc84d3acdf75d2";
+export const SUBGRAPH_API_KEY =
+  process.env.SUBGRAPH_API_KEY || "a91ea186d50f7e8629fc84d3acdf75d2";
 
 export const SUBGRAPH_IDS = {
   AAVE_V3: {
@@ -19,12 +20,12 @@ export const SUBGRAPH_IDS = {
     ARBITRUM: "5MjRndNWGhqvNX7chUYLQDnvEgc8DaH8eisEkcJt71SR",
     POLYGON: "5wfoWBpfYv59b99wDxJmyFiKBu9brXESeqJAzw8WP5Cz",
     SCROLL: "GPe7ULSUqftERXs5nmvFEvf1uL1yGQF8WdbE8tPVrUbv",
-    OPTIMISM: "FhHNkfh5z6Z2WCEBxB6V3s8RPxnJfWZ9zAfM5bVvbvbb"
+    OPTIMISM: "FhHNkfh5z6Z2WCEBxB6V3s8RPxnJfWZ9zAfM5bVvbvbb",
   },
   MORPHO: {
     ETHEREUM: "DsznTYxGdsqxWB6a474rSksvB7qWSth5Ff1PcxW28vZy",
     ARBITRUM: "XsJn88DNCHJ1kgTqYeTgHMQSK4LuG1LR75339QVeQ26",
-    OPTIMISM: "i5y8d3K3vVCR7r5YwANGCjupLc3hUge54XvhYMEq3Jmq1",
+    OPTIMISM: "5y8d3K3vVCR7r5YwANGCjupLc3hUge54XvhYMEq3Jmq1",
     POLYGON: "EhFokmwryNs7qbvostceRqVdjc3petuD13mmdUiMBw8Y",
     SCROLL: "Aic7prLAxhtipUEbLu5BhDDWf4LssT9n3DG4fT9yCRqm",
   },
