@@ -17,10 +17,10 @@ export const initializeCronJobs = () => {
     }
   });
 
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('0 * * * *', async () => {
     const data = await ProtocolApis.fetchAllProtocols();
     await saveToPostgres(data);
-    console.log('Fetched and stored 1-minute data');
+    console.log('Fetched and stored 1-hour data');
   });
 
   logger.info("Cron jobs initialized.");
