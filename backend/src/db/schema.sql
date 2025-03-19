@@ -8,6 +8,8 @@ CREATE TABLE protocols (
     stablecoin VARCHAR(255) NOT NULL,
     apy NUMERIC(10, 4) NOT NULL, -- Annual Percentage Yield
     tvl NUMERIC(20, 2) NOT NULL, -- Total Value Locked
+    interest_rate DECIMAL, -- IR
+    lastUpdated TIMESTAMP NOT NULL DEFAULT NOW(),
     timestamp TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
