@@ -7,7 +7,7 @@ const config = {
     poolSize: parseInt(process.env.DB_POOL_SIZE || "10", 10),
   },
   server: {
-    port: parseInt(process.env.PORT || "3000", 10),
+    port: parseInt(process.env.PORT || "5000", 10),
     host: process.env.HOST || "localhost",
   },
   apiKeys: {
