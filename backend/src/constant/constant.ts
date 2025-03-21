@@ -1,5 +1,8 @@
+import dotenv from "dotenv";
+
+dotenv.config();
 export const SUBGRAPH_API_KEY =
-  process.env.SUBGRAPH_API_KEY || "a91ea186d50f7e8629fc84d3acdf75d2";
+  process.env.SUBGRAPH_API_KEY;
 
 export const SUBGRAPH_IDS = {
   AAVE_V3: {

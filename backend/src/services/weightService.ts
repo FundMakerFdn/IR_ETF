@@ -4,11 +4,11 @@ export const saveWeights = async (indexId: number, weights: any, rebalanceDate: 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    for (const { protocol, chain, weight } of weights) {
+    for (const { protocol, chain, stablecoin, weight } of weights) {
       await client.query(
-        `INSERT INTO index_weights (index_id, protocol_name, chain, weight, rebalance_date)
-           VALUES ($1, $2, $3, $4, $5)`,
-        [indexId, protocol, chain, weight, rebalanceDate]
+        `INSERT INTO index_weights (index_id, protocol, chain, stablecoin, weight, rebalance_date)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+        [indexId, protocol, chain, stablecoin, weight, rebalanceDate]
       );
     }
     await client.query("COMMIT");

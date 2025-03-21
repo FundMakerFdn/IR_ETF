@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BarChart3, Github, Linkedin, Twitter } from 'lucide-react'
+import { BarChart3, Github, Linkedin, X } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -9,14 +9,14 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <BarChart3 className="h-6 w-6 text-blue-500" />
-              <span className="text-xl font-bold">ETF</span>
+              <span className="text-xl font-bold">LDRI</span>
             </Link>
             <p className="text-sm text-gray-400">
               Advanced cryptocurrency portfolio tracking and allocation visualization for serious investors.
             </p>
             <div className="flex space-x-4">
               <Link href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
+                <X className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
               <Link href="#" className="text-gray-400 hover:text-white transition-colors">

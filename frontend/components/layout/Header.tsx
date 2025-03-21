@@ -35,7 +35,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
             <BarChart3 className="h-6 w-6 text-blue-500" />
-            <span className="text-xl font-bold">ETF</span>
+            <span className="text-xl font-bold">LDRI</span>
           </Link>
           <nav className="hidden md:flex gap-6 ml-6">
             <Link
@@ -65,14 +65,14 @@ export default function Header() {
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600">
                   <User className="h-4 w-4 text-white" />
                 </div>
-                <span className="hidden md:inline-flex">John Doe</span>
+                <span className="hidden md:inline-flex">Administrator</span>
                 <ChevronDown className="h-4 w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">John Doe</p>
+                  <p className="text-sm font-medium leading-none">Administrator</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     john.doe@example.com
                   </p>
