@@ -54,6 +54,7 @@ export const initializeDatabase = async () => {
         apy NUMERIC(10, 4) NOT NULL,
         tvl NUMERIC(20, 2) NOT NULL,
         interest_rate DECIMAL,
+        last_updated TIMESTAMP NOT NULL DEFAULT NOW(),
         timestamp TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
@@ -87,6 +88,7 @@ export const initializeDatabase = async () => {
         index_id INT,
         protocol VARCHAR(50),
         chain VARCHAR(50),
+        stablecoin VARCHAR(50),
         weight DECIMAL,
         rebalance_date DATE,
         timestamp TIMESTAMP NOT NULL DEFAULT NOW ()

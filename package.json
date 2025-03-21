@@ -1,0 +1,14 @@
+{
+    "name": "project-root",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\""
+    },
+    "devDependencies": {
+        "concurrently": "^8.0.1"
+    },
+    "workspaces": [
+        "backend",
+        "frontend"
+    ]
+}
